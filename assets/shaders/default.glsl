@@ -3,14 +3,19 @@
 
     attribute vec3 aPos;
     attribute vec4 aColor;
+    attribute vec2 aTexCoords;
 
     uniform mat4 uProjection;
     uniform mat4 uView;
 
     varying vec4 fColor;
+    varying vec2 fTexCoords;
 
     void main(){
         fColor = aColor;
+        // Aplicar rotación de 90 grados en sentido antihorario
+        mat2 rotationMatrix = mat2(cos(-1.5708), -sin(-1.5708), sin(-1.5708), cos(-1.5708));
+        fTexCoords = rotationMatrix * aTexCoords;
         gl_Position = uProjection * uView * vec4(aPos, 1.0);
     }
 
@@ -18,12 +23,17 @@
     #version 120
 
     uniform float uTime;
-    attribute vec4 color;
+    uniform sampler2D TEX_SAMPLER;
     varying vec4 fColor;
+    varying vec2 fTexCoords;
+
+
+    vec4 texture(sampler2D TEX_SAMPLER, vec2 fTexCoords)
+    {
+        return texture2D(TEX_SAMPLER, fTexCoords);
+    }
+
 
     void main(){
-        gl_FragColor = sin(uTime) * fColor;
-
-        float avg = (fColor.r + fColor.g + fColor.b) / 3;
-        color = vec4(avg + avg + avg + 1);
+        gl_FragColor = texture2D(TEX_SAMPLER, fTexCoords);
     }

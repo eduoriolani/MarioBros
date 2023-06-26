@@ -1,6 +1,7 @@
 package org.example.jade;
 
 import org.example.renderer.Shader;
+import org.example.renderer.Texture;
 import org.example.util.Time;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
@@ -14,13 +15,14 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class LevelEditorScene extends Scene{
     private int vertexID, fragmentID, shaderProgram;
+    private Texture testTexture;
 
     private float[] vertexArray = {
-        //Position              //Color
+        //Position              //Color                    //UV position
          100.5f,-0.5f, 0.0f,     1.0f, 0.0f, 0.0f, 1.0f,   1,0, //Bottom right 0
          0.5f, 100.5f, 0.0f,     0.0f, 1.0f, 0.0f, 1.0f,   0,1, //Top left     1
          100.5f, 100.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f,   1,1, //Top right    2
-        0.5f,0.5f, 0.0f,         1.0f, 1.0f, 0.0f, 1.0f,   0,0 //Bottom left  3
+        0.5f,0.5f, 0.0f,         1.0f, 1.0f, 0.0f, 1.0f,   0,0 //Bottom left   3
     };
     private int[] elementArray = {
             //   *       *
@@ -40,16 +42,11 @@ public class LevelEditorScene extends Scene{
 
     @Override
     public void init(){
-
-        this.camera = new Camera(new Vector2f());
+        this.camera = new Camera(new Vector2f(-200, -300));
         defaultShader = new Shader("assets/shaders/default.glsl");
-
         defaultShader.compile();
 
-
-
-
-
+        this.testTexture = new Texture("assets/images/mario2.png");
 
         //=============================================================//
         //Generate VAO, VBO and EBO buffer objects and sends to the gpu//
@@ -96,10 +93,17 @@ public class LevelEditorScene extends Scene{
     }
     @Override
     public void update(float dt) {
-        camera.position.x -= dt * 50.0;
-        camera.position.y -= dt * 30.0;
+
         //Bind shader program
         defaultShader.use();
+
+        //Upload texture to shader
+        defaultShader.uploadTexture("TEX_SAMPLER",0);
+        glActiveTexture(GL_TEXTURE0);
+        testTexture.bind();
+
+
+
         defaultShader.uploadMat4f("uProjection", camera.getProjectionMatrix());
         defaultShader.uploadMat4f("uView", camera.getViewMatrix());
         defaultShader.uploadFloat("uTime", Time.getTime());
@@ -110,12 +114,14 @@ public class LevelEditorScene extends Scene{
         //Enable the vertex attribute pointers
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
 
         glDrawElements(GL_TRIANGLES, elementArray.length, GL_UNSIGNED_INT, 0);
 
         //Unbind everything
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
+        glDisableVertexAttribArray(2);
 
         glBindVertexArray(0);
         defaultShader.detach();
