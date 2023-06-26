@@ -24,7 +24,6 @@ public class Shader {
         this.filePath = filePath;
         try{
             String source = new String(Files.readAllBytes(Paths.get(filePath)));
-            System.out.println(source);
             String[] splitString = source.split("(#type)( )+([a-zA-Z]+)");
 
             //Find the first pattern after #type 'pattern'
